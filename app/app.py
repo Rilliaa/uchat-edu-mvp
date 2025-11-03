@@ -9,9 +9,9 @@ import re
 # 1️⃣ Load Models (TF-IDF + IndoBERTweet)
 # ============================================================
 @st.cache_resource
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "../result/tf-idf/intent_classifier_tfidf_lr.pkl")
 
 def load_tfidf():
+    MODEL_PATH = os.path.join(os.path.dirname(__file__), "../result/tf-idf/intent_classifier_tfidf_lr.pkl")
     model = joblib.load(MODEL_PATH)
     return model
 
