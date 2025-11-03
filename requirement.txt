@@ -1,7 +1,9 @@
 streamlit
-transformers
 torch
+transformers
 scikit-learn
-pandas
-numpy
 joblib
+numpy
+pandas
+regex
+huggingface-hub
