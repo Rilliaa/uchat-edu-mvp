@@ -10,7 +10,7 @@ import re
 # ============================================================
 @st.cache_resource
 def load_tfidf():
-    model = joblib.load("result/tf-idf/intent_classifier_tfidf_lr.pkl")
+    model = joblib.load("app/result/tf-idf/intent_classifier_tfidf_lr.pkl")
     return model
 
 @st.cache_resource
