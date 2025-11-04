@@ -12,7 +12,8 @@ import re
 @st.cache_resource
 
 def load_tfidf():
-    MODEL_PATH = os.path.join(os.path.dirname(__file__), "../result/tf-idf/intent_classifier_tfidf_lr.pkl")
+    MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "result", "tf-idf", "intent_classifier_tfidf_lr.pkl")
+    MODEL_PATH = os.path.abspath(MODEL_PATH)
     model = joblib.load(MODEL_PATH)
     return model
 
