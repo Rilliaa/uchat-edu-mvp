@@ -117,7 +117,7 @@ st.set_page_config(page_title="UChat NLU MVP", page_icon="🎓", layout="centere
 
 st.title("🎓 UChat NLU MVP — Intent & Entity Demo")
 
-role = st.selectbox("Login sebagai:", ["[ROLE:admin]", "[ROLE:teacher]", "[ROLE:parent]", "[ROLE:student]"])
+role = st.selectbox("Login sebagai:", ["admin", "teacher", "parent", "student"])
 user_text = st.text_area("Masukkan perintah (Bahasa Indonesia):", height=100)
 model_choice = st.radio("Pilih Model:", ["TF-IDF + Logistic Regression", "IndoBERTweet (Fine-tuned)"])
 
