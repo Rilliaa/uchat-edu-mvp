@@ -136,28 +136,45 @@ if st.button("Prediksi Intent"):
     if not text.strip():
         st.warning("⚠️ Harap masukkan teks terlebih dahulu.")
     else:
+        # ============================================================
+        # MODIFIKASI: Prepend Role Context
+        # ============================================================
+        # Format: [ROLE:admin] utterence
+        augmented_text = f"[ROLE:{role}] {text}"
+        
+        # Opsi: Tampilkan ke UI agar kita tahu apa yang dikirim ke mesin (untuk debugging/demo)
+        st.info(f"📤 **Input diproses:** `{augmented_text}`")
+
+        # Kirim 'augmented_text' ke Model (bukan 'text' polos)
         if model_choice == "TF-IDF + Logistic Regression":
             model = load_tfidf()
-            pred, probs = predict_tfidf(text, model)
+            pred, probs = predict_tfidf(augmented_text, model)
         else:
             tokenizer, model = load_indobertweet()
-            pred, probs = predict_indobertweet(text, tokenizer, model)
+            pred, probs = predict_indobertweet(augmented_text, tokenizer, model)
 
         # Confidence Check
         max_conf = float(max([float(p.strip('%')) for p in probs.values()]))
         confident = max_conf >= CONF_THRESHOLD * 100
 
         if confident:
+            # Catatan: Entity Extraction tetap menggunakan 'text' asli agar regex tidak bingung dengan tag [ROLE]
             entities = extract_entities(pred, text)
+            
             st.success(f"🎯 Intent: **{pred}**")
             st.json({
                 "confidence (%)": round(max_conf, 2),
-                "role": role,
+                "role_context": role,
+                "input_to_model": augmented_text,
                 "entities": entities
             })
         else:
             st.error("❌ Sistem tidak yakin dengan prediksi (possible OOD). Permintaan diarahkan ke admin manusia.")
-            st.json({"predicted_intent": pred, "confidence (%)": round(max_conf, 2)})
+            st.json({
+                "predicted_intent": pred, 
+                "confidence (%)": round(max_conf, 2),
+                "input_used": augmented_text
+            })
 
 st.markdown("---")
 st.caption("💡 Dibangun dengan IndoBERTweet & TF-IDF baseline — Bahasa Indonesia Intent Classification.")
