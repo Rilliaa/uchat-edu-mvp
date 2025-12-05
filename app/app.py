@@ -157,7 +157,7 @@ if st.button("Prediksi Intent"):
             })
         else:
             st.error("❌ Sistem tidak yakin dengan prediksi (possible OOD). Permintaan diarahkan ke admin manusia.")
-            st.json({"predicted_intent": pred, "confidence (%)": round(max_conf, 2)})
+            st.json({"predicted_intent": "human_handsoff", "confidence (%)": round(max_conf, 2)})
 
 st.markdown("---")
 st.caption("💡 Dibangun dengan IndoBERTweet & TF-IDF baseline — Bahasa Indonesia Intent Classification.")
