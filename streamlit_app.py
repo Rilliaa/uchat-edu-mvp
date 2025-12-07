@@ -156,6 +156,7 @@ if st.button("Prediksi Intent"):
             st.error("❌ Sistem tidak yakin dengan prediksi.")
             st.json({
                 "predicted_intent": "human_handsoff",
+                "closest_intent": pred,
                 "confidence (%)": round(max_conf, 2),
                 "input_used": augmented_text
             })
