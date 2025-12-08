@@ -232,7 +232,7 @@ def predict_indobertweet(text, tokenizer, model):
 # ============================================================
 # 6️⃣ Confidence Threshold & Context
 # ============================================================
-CONF_THRESHOLD = 0.35
+CONF_THRESHOLD = 0.25
 
 def add_role_context(role: str, text: str):
     return f"[ROLE:{role}] {text.strip()}"
