@@ -5,296 +5,282 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import numpy as np
 import os
 import re
+import time
 
 # ============================================================
-# 1️⃣ Load Models (Safety & Caching)
+# 0️⃣ PAGE CONFIGURATION
 # ============================================================
+st.set_page_config(
+    page_title="UChat NLU Studio",
+    page_icon="🧠",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Custom CSS untuk UI yang lebih clean
+st.markdown("""
+    <style>
+    .stTextArea textarea {font-size: 16px !important;}
+    .reportview-container {background: #f5f5f5;}
+    div[data-testid="stMetricValue"] {font-size: 24px;}
+    </style>
+""", unsafe_allow_html=True)
+
+# ============================================================
+# 1️⃣ LAZY LOADING MODELS (Memory Efficient)
+# ============================================================
+# Kita pisahkan loader agar model hanya dimuat jika DIPILIH user
+
 @st.cache_resource
-def load_tfidf():
+def load_fm_tfidf():
+    """Load Focus Mode TF-IDF (16 Intents)"""
+    path = "result/fm-tf-idf/fm_intent_classifier_tfidf_lr.pkl"
     try:
-        # Pastikan path ini sesuai dengan struktur folder Anda
-        path = "result/tf-idf/intent_classifier_tfidf_lr.pkl"
         if not os.path.exists(path):
-            st.error(f"❌ File model tidak ditemukan di: {path}")
-            return None
+            return None, f"File not found: {path}"
         model = joblib.load(path)
-        return model
+        return model, None
     except Exception as e:
-        st.error(f"❌ Gagal memuat TF-IDF: {e}")
-        return None
+        return None, str(e)
 
 @st.cache_resource
-def load_indobertweet():
+def load_fm_indobertweet():
+    """Load Focus Mode IndoBERTweet (16 Intents)"""
+    model_name = "rilliaa/FM_IndoBERTweet_Intent_Classifier"
     try:
-        model_name = "rilliaa/UChat-IndoBERTweet" 
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         model = AutoModelForSequenceClassification.from_pretrained(model_name)
-        return tokenizer, model
+        return (tokenizer, model), None
     except Exception as e:
-        st.error(f"❌ Gagal memuat IndoBERTweet: {e}")
-        return None, None
+        return (None, None), str(e)
+
+@st.cache_resource
+def load_legacy_tfidf():
+    """Load Legacy TF-IDF (114 Intents)"""
+    path = "result/tf-idf/intent_classifier_tfidf_lr.pkl"
+    try:
+        if not os.path.exists(path):
+            return None, f"File not found: {path}"
+        model = joblib.load(path)
+        return model, None
+    except Exception as e:
+        return None, str(e)
+
+@st.cache_resource
+def load_legacy_indobertweet():
+    """Load Legacy IndoBERTweet (114 Intents)"""
+    model_name = "rilliaa/UChat-IndoBERTweet"
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        model = AutoModelForSequenceClassification.from_pretrained(model_name)
+        return (tokenizer, model), None
+    except Exception as e:
+        return (None, None), str(e)
 
 # ============================================================
-# 2️⃣ Logic Gate: Intent to Entity Mapping
+# 2️⃣ LOGIC GATE & ENTITY EXTRACTION
 # ============================================================
-# Daftar ini membatasi entity apa saja yang boleh diambil untuk intent tertentu.
+
+# Map Intent ke Entity yang WAJIB dicari (Logic Gate)
+# Ini memastikan bot tidak mencari 'Nilai' saat intent-nya 'Cek SPP'
 INTENT_ENTITY_MAP = {
-    # --- ADMIN TEACHER/STUDENT/PARENTS MANAGEMENT ---
-    "admin_teacher_add": ["nama_guru", "nip", "alamat", "email"],
-    "admin_teacher_update": ["nama_guru", "nip", "alamat", "email"],
-    "admin_teacher_delete": ["nama_guru", "nip", "alamat", "email"],
-    "admin_student_add": ["nama_murid", "tahun_ajaran", "nisn", "kelas"],
-    "admin_student_update": ["nama_murid", "tahun_ajaran", "nisn", "kelas"],
-    "admin_student_delete": ["nama_murid", "tahun_ajaran", "nisn", "kelas"],
-    "admin_student_chart_kehadiran": ["nama_murid", "tahun_ajaran"],
-    "admin_student_grafik_kehadiran": ["nama_murid", "tahun_ajaran_awal", "tahun_ajaran_akhir"],
+    # --- FOCUS MODE INTENTS (16 Selected) ---
     "admin_student_chart_nilai": ["nama_murid", "tahun_ajaran"],
-    "admin_student_grafik_nilai": ["nama_murid", "tahun_ajaran_awal", "tahun_ajaran_akhir"],
     "admin_student_cek_kehadiran": ["nama_murid", "tanggal"],
-    "admin_parents_add": ["nama_wali_murid", "nama_murid(anak)", "alamat", "email"],
-    "admin_parents_update": ["nama_wali_murid", "nama_murid(anak)", "alamat", "email"],
-    "admin_parents_delete": ["nama_wali_murid", "nama_murid(anak)", "alamat", "email"],
-    "admin_parents_view_detail": ["nama_wali_murid", "nama_murid(anak)", "alamat", "email"],
-    
-    # --- ADMIN ACADEMIC & SIS ---
-    "admin_academic_year_add": ["tahun_mulai", "tahun_selesai", "kode_ta"],
-    "admin_academic_year_update": ["tahun_mulai", "tahun_selesai", "kode_ta"],
-    "admin_academic_year_delete": ["kode_ta"],
-    "admin_academic_year_transition": ["kode_ta_awal", "kode_ta_akhir"],
-    "admin_class_add": ["kode_ta", "nama_kelas", "nama_wali_kelas"],
-    "admin_class_update": ["kode_ta", "nama_kelas", "nama_wali_kelas"],
-    "admin_class_delete": ["kode_ta", "nama_kelas", "nama_wali_kelas"],
-    "admin_subject_add": ["kode_mapel", "nama_mapel", "nama_guru_pengampu"],
-    "admin_subject_update": ["kode_mapel", "nama_mapel", "nama_guru_pengampu"],
-    "admin_subject_delete": ["kode_mapel", "nama_mapel", "nama_guru_pengampu"],
-    "admin_lesson_hour_add": ["hari", "jam_ke", "jam_mulai", "jam_selesai", "keterangan"],
-    "admin_lesson_hour_update": ["hari", "jam_ke", "jam_mulai", "jam_selesai", "keterangan"],
-    "admin_lesson_hour_delete": ["hari", "jam_ke", "jam_mulai", "jam_selesai", "keterangan"],
-    "admin_class_schedule_add": ["kelas", "tahun_ajaran", "hari", "mata_pelajaran", "guru_pengampu"],
-    "admin_class_schedule_update": ["kelas", "tahun_ajaran", "hari", "mata_pelajaran", "guru_pengampu"],
-    "admin_class_schedule_delete": ["kelas", "tahun_ajaran", "hari", "mata_pelajaran", "guru_pengampu"],
-    "admin_score_add": ["nama_murid", "nama_mapel", "nilai", "tahun_ajaran"],
-    "admin_score_update": ["nama_murid", "nama_mapel", "nilai", "tahun_ajaran"],
-    "admin_score_delete": ["nama_murid", "nama_mapel", "nilai", "tahun_ajaran"],
-    "admin_session_add": ["tanggal", "hari", "tahun_ajaran"],
-    "admin_session_update": ["tanggal", "hari", "tahun_ajaran"],
-    "admin_session_delete": ["tanggal", "hari", "tahun_ajaran"],
-    "admin_attendance_add": ["nama_murid", "nama_kelas", "tanggal", "status_kehadiran", "keterangan"],
-    "admin_attendance_update": ["nama_murid", "nama_kelas", "tanggal", "status_kehadiran", "keterangan"],
-    "admin_attendance_delete": ["nama_murid", "nama_kelas", "tanggal", "status_kehadiran", "keterangan"],
-    "admin_violence_add": ["nama_pelanggaran", "poin_pelanggaran"],
-    "admin_violence_update": ["nama_pelanggaran", "poin_pelanggaran"],
-    "admin_violence_delete": ["nama_pelanggaran", "poin_pelanggaran"],
-    "admin_achivement_add": ["nama_prestasi", "poin_prestasi"],
-    "admin_achivement_update": ["nama_prestasi", "poin_prestasi"],
-    "admin_achivement_delete": ["nama_prestasi", "poin_prestasi"],
-    "admin_stud_violations_add": ["nama_murid", "nama_pelanggaran", "lokasi", "tanggal"],
-    "admin_stud_violations_update": ["nama_murid", "nama_pelanggaran", "lokasi", "tanggal"],
-    "admin_stud_violations_delete": ["nama_murid", "nama_pelanggaran", "lokasi", "tanggal"],
-    "admin_stud_violations_detail": ["nama_murid", "nama_pelanggaran", "lokasi", "tanggal"],
-    "admin_stud_achivements_add": ["nama_murid", "nama_prestasi", "lokasi", "tanggal"],
-    "admin_stud_achivements_update": ["nama_murid", "nama_prestasi", "lokasi", "tanggal"],
-    "admin_stud_achivements_delete": ["nama_murid", "nama_prestasi", "lokasi", "tanggal"],
-    "admin_stud_achivements_detail": ["nama_murid", "nama_prestasi", "lokasi", "tanggal"],
-    
-    # --- STUDENT INTENTS ---
-    "student_achivement": ["nama_murid", "lokasi", "tanggal", "nama_prestasi"],
-    "student_violations": ["nama_murid", "lokasi", "tanggal", "nama_pelanggaran"],
-    "student_chart_kehadiran": ["nama_murid", "tahun_ajaran"],
-    "student_grafik_kehadiran": ["nama_murid", "tahun_ajaran_awal", "tahun_ajaran_akhir"],
-    "student_cek_kehadiran": ["nama_murid", "tanggal"],
-    "student_chart_nilai": ["nama_murid", "tahun_ajaran"],
-    "student_grafik_nilai": ["nama_murid", "tahun_ajaran_awal", "tahun_ajaran_akhir"],
-    
-    # --- PARENTS INTENTS ---
-    "parents_student_achivement": ["nama_murid", "lokasi", "tanggal", "nama_prestasi"],
-    "parents_student_violations": ["nama_murid", "lokasi", "tanggal", "nama_pelanggaran"],
-    "parents_student_chart_kehadiran": ["nama_murid", "tahun_ajaran"],
-    "parents_student_grafik_kehadiran": ["nama_murid", "tahun_ajaran_awal", "tahun_ajaran_akhir"],
-    "parents_student_cek_kehadiran": ["nama_murid", "tanggal"],
+    "student_chart_nilai": ["tahun_ajaran"],
+    "student_cek_kehadiran": ["tanggal"],
     "parents_student_chart_nilai": ["nama_murid", "tahun_ajaran"],
-    "parents_student_grafik_nilai": ["nama_murid", "tahun_ajaran_awal", "tahun_ajaran_akhir"],
+    "teacher_view_student_details": ["nama_murid"],
+    "student_achivement": ["nama_prestasi"], # Optional
     
-    # --- TEACHER INTENTS ---
-    "teacher_score_add": ["nama_murid", "nama_mapel", "nilai", "tahun_ajaran"],
-    "teacher_score_update": ["nama_murid", "nama_mapel", "nilai", "tahun_ajaran"],
-    "teacher_score_delete": ["nama_murid", "nama_mapel", "nilai", "tahun_ajaran"],
-    "teacher_attendance_add": ["nama_murid", "nama_kelas", "tanggal", "status_kehadiran", "keterangan"],
-    "teacher_attendance_update": ["nama_murid", "nama_kelas", "tanggal", "status_kehadiran", "keterangan"],
-    "teacher_attendance_delete": ["nama_murid", "nama_kelas", "tanggal", "status_kehadiran", "keterangan"],
-    "teacher_view_student_details": ["nama_murid", "tahun_ajaran", "nisn", "kelas"],
+    # --- LEGACY INTENTS (Partial List for Fallback) ---
+    "admin_teacher_add": ["nama_guru", "nip", "alamat", "email"],
+    "admin_student_add": ["nama_murid", "tahun_ajaran", "nisn", "kelas"],
+    "admin_score_add": ["nama_murid", "nama_mapel", "nilai", "tahun_ajaran"],
+    # ... (Tambahkan sisa intent legacy jika diperlukan)
 }
 
-# ============================================================
-# 3️⃣ Robust Regex Patterns (Flexible Capturing Groups)
-# ============================================================
+# Regex Patterns yang fleksibel
 ENTITY_PATTERNS = {
-    # --- TIME & ACADEMIC YEAR ---
     "tahun_ajaran": r"\b(20\d{2})[\/\-–](20\d{2})\b",
-    "kode_ta": r"(?:kode[\s:\-]+ta|TA)[_\-]?(20\d{2})",
-    "tahun_mulai": r"(?:tahun[\s:\-]+mulai|mulai[\s:\-]+tahun)[\s:\-]+(20\d{2})\b",
-    "tahun_selesai": r"(?:tahun[\s:\-]+selesai|selesai[\s:\-]+tahun)[\s:\-]+(20\d{2})\b",
-    "tahun_ajaran_awal": r"(?:tahun[\s:\-]+ajaran[\s:\-]+awal)[\s:\-]+(20\d{2})\b",
-    "tahun_ajaran_akhir": r"(?:tahun[\s:\-]+ajaran[\s:\-]+akhir)[\s:\-]+(20\d{2})\b",
-    "tanggal": r"(\d{4}[-/]\d{2}[-/]\d{2})|(\d{2}[-/]\d{2}[-/]\d{4})",
-
-    # --- NAMES & ROLES ---
-    "nama_murid": r"(?:murid|siswa|anaku|anak)[\s:\-]+([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)",
-    "nama_murid(anak)": r"(?:anak)[\s:\-]+([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)",
-    "nama_guru": r"(?:guru)[\s:\-]+([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)",
-    "nama_guru_pengampu": r"(?:guru[\s:\-]+pengampu)[\s:\-]+([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)",
-    "nama_wali_kelas": r"(?:wali[\s:\-]+kelas)[\s:\-]+([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)",
-    "nama_wali_murid": r"(?:wali[\s:\-]+murid)[\s:\-]+([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)",
-    "guru_pengampu": r"(?:pengampu)[\s:\-]+([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)",
-
-    # --- ACADEMIC OBJECTS & IDENTIFIERS ---
-    "kelas": r"\b(X|XI|XII|10|11|12)[\s\-]?[A-Z]{0,2}\b",
-    "nama_kelas": r"(?:nama[\s:\-]+kelas)[\s:\-]+([A-Z][a-z0-9\s]+)",
-    "kode_mapel": r"(?:kode[\s:\-]+mapel|MAPEL)[_\-]?[A-Z0-9]+",
-    "nama_mapel": r"(?:mata[\s:\-]+pelajaran|mapel)[\s:\-]+([A-Za-z\s]+)",
-    "mata_pelajaran": r"(?:pelajaran)[\s:\-]+([A-Za-z\s]+)",
-    "nilai": r"(?:nilai)[\s:\-]+(\d{1,3})",
-    
-    # --- IDs & CONTACT ---
+    "tanggal": r"(\d{4}[-/]\d{2}[-/]\d{2})|(\d{2}[-/]\d{2}[-/]\d{4})|(\d{1,2}\s+(?:januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember)\s+\d{4})",
+    "nama_murid": r"(?:murid|siswa|anak|bernama)\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)",
+    "nama_guru": r"(?:guru|pengajar)\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)",
     "nip": r"\b\d{18}\b",
     "nisn": r"\b\d{10}\b",
-    "email": r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
-    "alamat": r"(?:alamat)[\s:\-]+(.*)",
-    "lokasi": r"(?:di|lokasi)[\s:\-]+([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)",
-    
-    # --- TIME & STATUS ---
-    "hari": r"\b(Senin|Selasa|Rabu|Kamis|Jumat|Sabtu|Minggu)\b",
-    "jam_mulai": r"(?:jam[\s:\-]+mulai)[\s:\-]+(\d{2}:\d{2})",
-    "jam_selesai": r"(?:jam[\s:\-]+selesai)[\s:\-]+(\d{2}:\d{2})",
-    "jam_ke": r"(?:jam[\s:\-]+ke)[\s:\-]+(\d{1,2})",
-    "status_kehadiran": r"\b(Hadir|Alpa|Sakit|Izin)\b",
-    "keterangan": r"(?:keterangan)[\s:\-]+(.*)",
-
-    # --- VIOLATIONS & ACHIEVEMENTS ---
-    "nama_pelanggaran": r"(?:pelanggaran)[\s:\-]+([A-Za-z\s]+)",
-    "poin_pelanggaran": r"(?:poin[\s:\-]+pelanggaran)[\s:\-]+(\d+)",
-    "nama_prestasi": r"(?:prestasi)[\s:\-]+([A-Za-z\s]+)",
-    "poin_prestasi": r"(?:poin[\s:\-]+prestasi)[\s:\-]+(\d+)",
-    "kode_ta_awal": r"(?:ta[\s:\-]+awal)[\s:\-]+(20\d{2})\b",
-    "kode_ta_akhir": r"(?:ta[\s:\-]+akhir)[\s:\-]+(20\d{2})\b",
+    "email": r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
+    "nilai": r"(?:nilai|skor)\s+(\d{1,3})",
+    "nama_mapel": r"(?:mapel|pelajaran)\s+([A-Za-z\s]+)",
+    "nama_prestasi": r"(?:juara|menang|lomba)\s+([A-Za-z0-9\s]+)",
 }
 
-# ============================================================
-# 4️⃣ Conditional Extraction Function
-# ============================================================
-def extract_entities(predicted_intent: str, text: str):
+def extract_entities_optimized(predicted_intent, text):
     """
-    Ekstraksi entity yang SANGAT KONDISIONAL.
-    Hanya mengeksekusi regex yang relevan dengan intent yang diprediksi.
+    Hanya mengeksekusi regex yang relevan dengan intent yang terdeteksi.
+    Meningkatkan performa dan mengurangi False Positive.
     """
-    extracted_data = {}
+    extracted = {}
     
-    # Logic Gate: Ambil daftar entity yang DIIZINKAN untuk intent ini
-    allowed_keys = INTENT_ENTITY_MAP.get(predicted_intent, [])
+    # 1. Cek apakah intent terdaftar di Map
+    target_entities = INTENT_ENTITY_MAP.get(predicted_intent, [])
     
-    # Hanya loop regex pattern yang ada di daftar izin tersebut
-    for key in allowed_keys:
-        pattern = ENTITY_PATTERNS.get(key)
+    # 2. Loop hanya pada regex yang dibutuhkan
+    for entity_key in target_entities:
+        pattern = ENTITY_PATTERNS.get(entity_key)
         if pattern:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
-                # Menggunakan logic capturing group (Grup terakhir atau Full Match)
-                if match.groups():
-                    extracted_data[key] = match.group(match.lastindex).strip()
-                else:
-                    extracted_data[key] = match.group(0).strip()
-                    
-    return extracted_data
-
+                # Ambil group terakhir yang valid atau full match
+                val = match.group(match.lastindex) if match.lastindex else match.group(0)
+                extracted[entity_key] = val.strip()
+    
+    return extracted
 
 # ============================================================
-# 5️⃣ Prediction Functions
+# 3️⃣ PREDICTION ENGINE
 # ============================================================
-def predict_tfidf(text, model):
-    if model is None: return "Error Loading Model", {}
-    probs = model.predict_proba([text])[0]
-    pred = model.classes_[np.argmax(probs)]
-    probs_percent = {cls: f"{prob*100:.2f}%" for cls, prob in zip(model.classes_, probs)}
-    return pred, probs_percent
-
-def predict_indobertweet(text, tokenizer, model):
-    if model is None: return "Error Loading Model", {}
-    inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True)
-    with torch.no_grad():
-        outputs = model(**inputs)
-        probs = torch.nn.functional.softmax(outputs.logits, dim=-1)[0].numpy()
-    pred_id = np.argmax(probs)
-    labels = list(model.config.id2label.values())
-    probs_percent = {label: f"{prob*100:.2f}%" for label, prob in zip(labels, probs)}
-    return labels[pred_id], probs_percent
-
-
-# ============================================================
-# 6️⃣ Confidence Threshold & Context
-# ============================================================
-CONF_THRESHOLD = 0.25
-
-def add_role_context(role: str, text: str):
-    return f"[ROLE:{role}] {text.strip()}"
-
-
-# ============================================================
-# 7️⃣ Streamlit UI
-# ============================================================
-st.set_page_config(page_title="UChat NLU MVP", page_icon="🎓", layout="centered")
-
-st.title("🎓 UChat NLU MVP — Intent & Entity Demo")
-
-role = st.selectbox("Login sebagai:", ["admin", "teacher", "parent", "student"])
-user_text = st.text_area("Masukkan perintah (Bahasa Indonesia):", height=100)
-model_choice = st.radio("Pilih Model:", ["TF-IDF + Logistic Regression", "IndoBERTweet (Fine-tuned)"])
-
-if st.button("Prediksi Intent"):
-    if not user_text.strip():
-        st.warning("⚠️ Harap masukkan teks terlebih dahulu.")
-    else:
-        # Inject role context
-        augmented_text = add_role_context(role, user_text)
-        st.info(f"📤 **Input ke model:** `{augmented_text}`")
-
-        # Prediction
-        pred = "Error"
-        probs = {}
+def predict_nlu(text, model_data, model_type):
+    """Unified prediction function handling both TF-IDF and BERT"""
+    start_time = time.time()
+    
+    try:
+        if model_type == "tfidf":
+            model = model_data
+            probs = model.predict_proba([text])[0]
+            pred_idx = np.argmax(probs)
+            pred_label = model.classes_[pred_idx]
+            confidence = probs[pred_idx]
+            
+        elif model_type == "bert":
+            tokenizer, model = model_data
+            inputs = tokenizer(text, return_tensors="pt", truncation=True, padding=True, max_length=128)
+            with torch.no_grad():
+                outputs = model(**inputs)
+                probs = torch.nn.functional.softmax(outputs.logits, dim=-1)[0].numpy()
+            pred_idx = np.argmax(probs)
+            pred_label = model.config.id2label[pred_idx]
+            confidence = probs[pred_idx]
+            
+        inference_time = time.time() - start_time
+        return pred_label, confidence, inference_time
         
-        if model_choice == "TF-IDF + Logistic Regression":
-            model = load_tfidf()
-            if model:
-                pred, probs = predict_tfidf(augmented_text, model)
-        else:
-            tokenizer, model = load_indobertweet()
-            if model:
-                pred, probs = predict_indobertweet(augmented_text, tokenizer, model)
+    except Exception as e:
+        return None, 0.0, 0.0
 
-        # Output Logic
-        if pred == "Error Loading Model" or not probs:
-             st.error("❌ Gagal memuat model. Periksa path file atau koneksi internet.")
-        else:
-            # Confidence check
-            max_conf = float(max([float(p.strip('%')) for p in probs.values()]))
-            confident = max_conf >= CONF_THRESHOLD * 100
+# ============================================================
+# 4️⃣ UI MAIN EXECUTION
+# ============================================================
 
-            if confident:
-                # 🔥 PENTING: Passing 'pred' (intent) ke ekstraktor entity
-                entities = extract_entities(pred, user_text)
+# --- SIDEBAR: Model Selection ---
+st.sidebar.title("🎛️ Control Panel")
+
+st.sidebar.caption("Pilih versi model untuk demonstrasi:")
+model_version = st.sidebar.radio(
+    "Model Version:",
+    ("v2.0 Focus Mode (Recommended)", "v1.0 Legacy (Experimental)"),
+    index=0
+)
+
+# Logic pemilihan model berdasarkan versi
+selected_model_key = ""
+if "v2.0" in model_version:
+    model_architecture = st.sidebar.selectbox(
+        "Architecture (Focus Mode):",
+        ("TF-IDF + LogReg (Lightweight)", "IndoBERTweet (High Accuracy)")
+    )
+    if "TF-IDF" in model_architecture: selected_model_key = "fm_tfidf"
+    else: selected_model_key = "fm_bert"
+else:
+    model_architecture = st.sidebar.selectbox(
+        "Architecture (Legacy 114 Intents):",
+        ("TF-IDF + LogReg", "IndoBERTweet")
+    )
+    if "TF-IDF" in model_architecture: selected_model_key = "legacy_tfidf"
+    else: selected_model_key = "legacy_bert"
+
+# Context settings
+st.sidebar.markdown("---")
+role = st.sidebar.selectbox("Simulasi User Role:", ["admin", "student", "teacher", "parent"])
+use_role_injection = st.sidebar.checkbox("Inject Role to Prompt?", value=True, help="Menambahkan [ROLE:...] ke teks input")
+
+# --- MAIN AREA ---
+st.title("🤖 UChat NLU Engine")
+st.markdown(f"**Active Model:** `{model_version}` | **Arch:** `{model_architecture}`")
+
+# Input Area
+user_input = st.text_area("User Utterance (Input Text):", height=100, placeholder="Contoh: Tolong tampilkan grafik nilai saya tahun ini...")
+
+# Tombol Eksekusi
+if st.button("Analyze Intent & Entities", type="primary"):
+    if not user_input.strip():
+        st.warning("⚠️ Text input is empty.")
+    else:
+        # 1. Prepare Data
+        final_input = f"[ROLE:{role}] {user_input}" if use_role_injection else user_input
+        
+        # 2. Load Model (Lazy Loading happens here!)
+        model_data = None
+        error_msg = None
+        
+        with st.spinner("Loading Model & Inferencing..."):
+            if selected_model_key == "fm_tfidf":
+                model_data, error_msg = load_fm_tfidf()
+                m_type = "tfidf"
+            elif selected_model_key == "fm_bert":
+                model_data, error_msg = load_fm_indobertweet()
+                m_type = "bert"
+            elif selected_model_key == "legacy_tfidf":
+                model_data, error_msg = load_legacy_tfidf()
+                m_type = "tfidf"
+            elif selected_model_key == "legacy_bert":
+                model_data, error_msg = load_legacy_indobertweet()
+                m_type = "bert"
+
+            # 3. Predict if model loaded
+            if model_data:
+                pred_intent, conf, t_time = predict_nlu(final_input, model_data, m_type)
                 
-                st.success(f"🎯 Intent: **{pred}**")
-                st.json({
-                    "confidence (%)": round(max_conf, 2),
-                    "role_context": role,
-                    "entities_extracted": entities  # Hanya menampilkan entity yang relevan
-                })
-            else:
-                st.error("❌ Sistem tidak yakin dengan prediksi.")
-                st.json({
-                    "predicted_intent": "human_handsoff",
-                    "closest_intent": pred,
-                    "confidence (%)": round(max_conf, 2)
-                })
+                # 4. Extract Entities
+                extracted_entities = extract_entities_optimized(pred_intent, user_input)
+                
+                # 5. Display Results
+                st.markdown("### 📊 Analysis Result")
+                
+                # Layout Kolom
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    st.metric("Predicted Intent", pred_intent)
+                with col2:
+                    st.metric("Confidence Score", f"{conf*100:.2f}%")
+                with col3:
+                    st.metric("Inference Time", f"{t_time:.4f}s")
 
+                # Visualisasi Confidence
+                if conf < 0.5:
+                    st.error("⚠️ Low Confidence: Model is unsure.")
+                elif conf < 0.8:
+                    st.warning("⚠️ Medium Confidence: Possible ambiguity.")
+                else:
+                    st.success("✅ High Confidence: Solid prediction.")
+
+                # Entity Section
+                st.markdown("#### 🧩 Extracted Entities")
+                if extracted_entities:
+                    st.json(extracted_entities)
+                else:
+                    st.info("No relevant entities found for this intent.")
+                
+                # Debug Info
+                with st.expander("🛠️ Debug Information"):
+                    st.write(f"**Raw Input Model:** `{final_input}`")
+                    st.write(f"**Loaded Model Key:** `{selected_model_key}`")
+                    
+            else:
+                st.error(f"❌ Failed to load model: {error_msg}")
+                if "File not found" in error_msg:
+                    st.warning("💡 Tips: Pastikan file `.pkl` sudah ada di folder `result/` dan sudah di-push ke GitHub/Hugging Face.")
+
+# Footer
 st.markdown("---")
-st.caption("💡 Dibangun dengan IndoBERTweet & TF-IDF baseline — Bahasa Indonesia Intent Classification.")
+st.caption("Developed for S2 Scholarship Portfolio | Comparisons between Legacy (114 Intents) vs Focus Mode (16 Intents)")
