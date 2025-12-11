@@ -83,35 +83,78 @@ def load_legacy_indobertweet():
 
 # Map Intent ke Entity yang WAJIB dicari (Logic Gate)
 # Ini memastikan bot tidak mencari 'Nilai' saat intent-nya 'Cek SPP'
+
 INTENT_ENTITY_MAP = {
-    # --- FOCUS MODE INTENTS (16 Selected) ---
+    # --- FOCUS MODE (16 Selected Intents) ---
+    
+    # [ID 1, 2, 7, 8, 9, 15, 16] Role: ADMIN
     "admin_student_chart_nilai": ["nama_murid", "tahun_ajaran"],
     "admin_student_cek_kehadiran": ["nama_murid", "tanggal"],
-    "student_chart_nilai": ["tahun_ajaran"],
-    "student_cek_kehadiran": ["tanggal"],
+    "admin_redirect_home": [],
+    "admin_redirect_student_view": [],
+    "admin_redirect_teacher_view": [],
+    "admin_log_activity": [],
+    "admin_settings": [],
+
+    # [ID 3, 4, 10, 11, 14] Role: MURID
+    "student_chart_nilai": ["nama_murid", "tahun_ajaran"],
+    "student_chart_kehadiran": ["nama_murid", "tahun_ajaran"], 
+    "student_scores_view": [],
+    "student_attendants_view": [],
+    "student_achivement": ["nama_murid", "lokasi", "tanggal_prestasi", "nama_prestasi"],
+
+    # [ID 5] Role: ORTU
     "parents_student_chart_nilai": ["nama_murid", "tahun_ajaran"],
-    "teacher_view_student_details": ["nama_murid"],
-    "student_achivement": ["nama_prestasi"], # Optional
-    
-    # --- LEGACY INTENTS (Partial List for Fallback) ---
+
+    # [ID 6, 12, 13] Role: GURU
+    "teacher_view_student_details": ["nama_murid", "tahun_ajaran", "nisn", "kelas"],
+    "teacher_schedule_view": [],
+    "teacher_score_view": [],
+
+    # --- LEGACY INTENTS (Fallback / Optional) ---
     "admin_teacher_add": ["nama_guru", "nip", "alamat", "email"],
     "admin_student_add": ["nama_murid", "tahun_ajaran", "nisn", "kelas"],
     "admin_score_add": ["nama_murid", "nama_mapel", "nilai", "tahun_ajaran"],
-    # ... (Tambahkan sisa intent legacy jika diperlukan)
 }
 
-# Regex Patterns yang fleksibel
+# ============================================================
+# 3️⃣ Robust Regex Patterns
+# ============================================================
 ENTITY_PATTERNS = {
-    "tahun_ajaran": r"\b(20\d{2})[\/\-–](20\d{2})\b",
-    "tanggal": r"(\d{4}[-/]\d{2}[-/]\d{2})|(\d{2}[-/]\d{2}[-/]\d{4})|(\d{1,2}\s+(?:januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember)\s+\d{4})",
-    "nama_murid": r"(?:murid|siswa|anak|bernama)\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)",
-    "nama_guru": r"(?:guru|pengajar)\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)",
+    # --- TIME ---
+    # Menangkap: 2023/2024, 2023-2024, 2023 2024
+    "tahun_ajaran": r"\b(20\d{2})[\/\-–\s](20\d{2})\b",
+    
+    # Menangkap: 2023-12-01, 01/12/2023, 1 Desember 2023
+    "tanggal": r"(\d{4}[-/]\d{2}[-/]\d{2})|(\d{2}[-/]\d{2}[-/]\d{4})|(\d{1,2}\s+(?:januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember|jan|feb|mar|apr|mei|jun|jul|agu|sep|okt|nov|des)[a-z]*\s+\d{4})",
+    
+    # Sama dengan tanggal, tapi kuncinya beda untuk Intent Prestasi
+    "tanggal_prestasi": r"(\d{4}[-/]\d{2}[-/]\d{2})|(\d{2}[-/]\d{2}[-/]\d{4})|(\d{1,2}\s+(?:januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember)\s+\d{4})",
+
+    # --- PEOPLE & ID ---
+    # Menangkap: "Murid Budi", "Siswa bernama Siti", atau "Budi" (jika diawali kata kunci)
+    "nama_murid": r"(?:murid|siswa|anak|bernama|si)\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)",
+    "nama_guru": r"(?:guru|pengajar|bapak|ibu)\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)",
+    
     "nip": r"\b\d{18}\b",
     "nisn": r"\b\d{10}\b",
     "email": r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
-    "nilai": r"(?:nilai|skor)\s+(\d{1,3})",
-    "nama_mapel": r"(?:mapel|pelajaran)\s+([A-Za-z\s]+)",
-    "nama_prestasi": r"(?:juara|menang|lomba)\s+([A-Za-z0-9\s]+)",
+
+    # --- ACADEMIC ATTRIBUTES ---
+    "nilai": r"(?:nilai|skor|angka)\s+(\d{1,3})",
+    "nama_mapel": r"(?:mapel|pelajaran|matkul)\s+([A-Za-z\s]+)",
+    
+    # Menangkap: "Juara 1 Lomba Lari", "Prestasi Olimpiade Math"
+    "nama_prestasi": r"(?:juara|menang|lomba|prestasi|medali)\s+([A-Za-z0-9\s]+)",
+    
+    # Menangkap: "di Jakarta", "Lokasi Aula", "Bertempat di Lapangan"
+    "lokasi": r"(?:di|lokasi|tempat|bertempat)\s+([A-Za-z0-9\s]+)",
+    
+    # Menangkap: "X IPA 1", "Kelas 10", "XII-A"
+    "kelas": r"(?:kelas|rombel)\s+([X|XI|XII|10|11|12]+(?:[\s-][A-Z]+)?(?:[\s-]\d+)?)",
+    
+    # Menangkap alamat (generic)
+    "alamat": r"(?:alamat|jalan|jln|tinggal di)\s+(.*)"
 }
 
 def extract_entities_optimized(predicted_intent, text):
