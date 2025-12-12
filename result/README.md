@@ -104,4 +104,3 @@ Model ini disimpan secara lokal di dalam direktori ini sebagai file `.pkl`.
 | :--- | :--- | :--- |
 | **v2.0 (Focus Mode)** | [`fm-tf-idf/`](https://www.google.com/search?q=./fm-tf-idf/) | Berisi vectorizer & classifier untuk cakupan **16-intent**. |
 | **v1.0 (Legacy)** | [`tf-idf/`](https://www.google.com/search?q=./tf-idf/) | Berisi vectorizer & classifier untuk cakupan luas **114-intent**. |
-```
