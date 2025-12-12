@@ -18,8 +18,8 @@ The visual reports below confirm the hypothesis: **Reducing intent scope signifi
 
 | Metric Image | Model | Performance Highlights |
 | :--- | :--- | :--- |
-| [`classification-report-fm-indobertweet.png`](classification-report-fm-indobertweet.png) | **IndoBERTweet** | **Perfect Score (1.00)**. Precision and Recall are balanced across all classes. |
-| [`classification-report-fm-tf-idf.png`](classification-report-fm-tf-idf.png) | **TF-IDF + LR** | **Excellent (0.97)**. Even the lightweight model performs near-perfectly with cleaner data. |
+| ![`classification-report-fm-indobertweet.png`](classification-report-fm-indobertweet.png) | **IndoBERTweet** | **Perfect Score (1.00)**. Precision and Recall are balanced across all classes. |
+| ![`classification-report-fm-tf-idf.png`](classification-report-fm-tf-idf.png) | **TF-IDF + LR** | **Excellent (0.97)**. Even the lightweight model performs near-perfectly with cleaner data. |
 
 > **Key Takeaway:** In Focus Mode, the gap between the complex model (BERT) and the simple model (TF-IDF) is very small (3%), proving that the dataset is high quality and distinct.
 
@@ -28,8 +28,8 @@ The visual reports below confirm the hypothesis: **Reducing intent scope signifi
 
 | Metric Image | Model | Performance Highlights |
 | :--- | :--- | :--- |
-| [`classification-report-indobertweet.png`](classification-report-indobertweet.png) | **IndoBERTweet** | **Good (0.94)**, but prone to overfitting due to data sparsity per intent. |
-| [`classification-report-tf-idf.png`](classification-report-tf-idf.png) | **TF-IDF + LR** | **Poor (0.65)**. The model fails to distinguish between overlapping intents (e.g., `teacher_score_update` vs `teacher_score_view`). |
+| ![`classification-report-indobertweet.png`](classification-report-indobertweet.png) | **IndoBERTweet** | **Good (0.94)**, but prone to overfitting due to data sparsity per intent. |
+| ![`classification-report-tf-idf.png`](classification-report-tf-idf.png) | **TF-IDF + LR** | **Poor (0.65)**. The model fails to distinguish between overlapping intents (e.g., `teacher_score_update` vs `teacher_score_view`). |
 
 ---
 
@@ -72,8 +72,8 @@ Laporan visual di bawah ini mengonfirmasi hipotesis: **Mengurangi cakupan intent
 
 | File Metrik | Model | Highlight Performa |
 | :--- | :--- | :--- |
-| [`classification-report-fm-indobertweet.png`](classification-report-fm-indobertweet.png) | **IndoBERTweet** | **Skor Sempurna (1.00)**. Precision dan Recall seimbang di seluruh kelas. |
-| [`classification-report-fm-tf-idf.png`](./classification-report-fm-tf-idf.png) | **TF-IDF + LR** | **Sangat Baik (0.97)**. Bahkan model ringan pun berkinerja hampir sempurna dengan data yang lebih bersih. |
+| ![`classification-report-fm-indobertweet.png`](classification-report-fm-indobertweet.png) | **IndoBERTweet** | **Skor Sempurna (1.00)**. Precision dan Recall seimbang di seluruh kelas. |
+| ![`classification-report-fm-tf-idf.png`](classification-report-fm-tf-idf.png) | **TF-IDF + LR** | **Sangat Baik (0.97)**. Bahkan model ringan pun berkinerja hampir sempurna dengan data yang lebih bersih. |
 
 > **Poin Penting:** Dalam Focus Mode, celah antara model kompleks (BERT) dan model sederhana (TF-IDF) sangat kecil (3%), membuktikan bahwa dataset memiliki kualitas tinggi dan *distinct*.
 
@@ -82,8 +82,8 @@ Laporan visual di bawah ini mengonfirmasi hipotesis: **Mengurangi cakupan intent
 
 | File Metrik | Model | Highlight Performa |
 | :--- | :--- | :--- |
-| [`classification-report-indobertweet.png`](classification-report-indobertweet.png) | **IndoBERTweet** | **Bagus (0.94)**, namun rentan *overfitting* karena kelangkaan data per intent. |
-| [`classification-report-tf-idf.png`](classification-report-tf-idf.png) | **TF-IDF + LR** | **Buruk (0.65)**. Model gagal membedakan intent yang tumpang tindih (misalnya: `teacher_score_update` vs `teacher_score_view`). |
+| ![`classification-report-indobertweet.png`](classification-report-indobertweet.png) | **IndoBERTweet** | **Bagus (0.94)**, namun rentan *overfitting* karena kelangkaan data per intent. |
+| ![`classification-report-tf-idf.png`](classification-report-tf-idf.png) | **TF-IDF + LR** | **Buruk (0.65)**. Model gagal membedakan intent yang tumpang tindih (misalnya: `teacher_score_update` vs `teacher_score_view`). |
 
 ---
 
