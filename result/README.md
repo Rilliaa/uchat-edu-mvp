@@ -36,6 +36,10 @@ These models are stored locally within this directory as serialized `.pkl` files
 
 ```text
 result/
+├── evaluation/
+│   ├── classification-reports
+│   └── confusion-matrixs
+│    
 ├── fm-tf-idf/                     # v2.0 Focus Mode Artifacts
 │   └── fm_intent_classifier_tfidf_lr.pkl
 │
@@ -87,7 +91,7 @@ Model dikategorikan ke dalam dua tahap evolusi:
 
 ## 🤖 Lokasi Model
 
-### 1\. Transformer Models (IndoBERTweet)
+### 1\. Model Transformers (IndoBERTweet)
 
 Karena ukuran file yang besar, model Transformer disimpan di **Hugging Face Hub**.
 
@@ -96,7 +100,7 @@ Karena ukuran file yang besar, model Transformer disimpan di **Hugging Face Hub*
 | **v2.0 (Focus Mode)** | `FM_IndoBERTweet` | [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Open-yellow)](https://huggingface.co/rilliaa/FM_IndoBERTweet_Intent_Classifier) | ✅ Lebih Fokus ke Intent Utama |
 | **v1.0 (Legacy)** | `UChat-IndoBERTweet` | [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Open-yellow)](https://huggingface.co/rilliaa/UChat-IndoBERTweet)  | ⚠️ Cakupan Intent lebih luas |
 
-### 2\. Lightweight Models (TF-IDF + Logistic Regression)
+### 2\. Model Yang Lebih Ringan (TF-IDF + Logistic Regression)
 
 Model ini disimpan secara lokal di dalam direktori ini sebagai file `.pkl`.
 
@@ -104,3 +108,20 @@ Model ini disimpan secara lokal di dalam direktori ini sebagai file `.pkl`.
 | :--- | :--- | :--- |
 | **v2.0 (Focus Mode)** | [`fm-tf-idf/`](https://www.google.com/search?q=./fm-tf-idf/) | Berisi vectorizer & classifier untuk cakupan **16-intent**. |
 | **v1.0 (Legacy)** | [`tf-idf/`](https://www.google.com/search?q=./tf-idf/) | Berisi vectorizer & classifier untuk cakupan luas **114-intent**. |
+
+## 📁 Struktur Direktori
+
+```text
+result/
+├── evaluation/
+│   ├── classification-reports
+│   └── confusion-matrixs
+│    
+├── fm-tf-idf/                    
+│   └── fm_intent_classifier_tfidf_lr.pkl
+│
+├── tf-idf/                      
+│   └── intent_classifier_tfidf_lr.pkl
+│
+└── README.md                      
+````
