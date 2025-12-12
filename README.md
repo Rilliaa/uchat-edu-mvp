@@ -1,191 +1,163 @@
-Sir, ini adalah draft `README.md` yang telah saya susun secara strategis.
-
-Berbeda dengan **Sentry-ID** yang fokus pada *detection performance*, untuk **UChat** ini saya menekankan narasi **"Product Engineering & Optimization"**. Kita menonjolkan perbandingan antara *Legacy Mode* (Ambisius tapi *noisy*) vs *Focus Mode* (Terarah dan *robust*).
-
-Ini akan membuat pengunjung repo (termasuk *recruiter*) melihat bahwa Sir bukan hanya bisa *training* model, tapi juga paham *scoping* produk.
-
-Silakan copy kode di bawah ini:
-
------
-
-````markdown
-# 🎓 UChat — School Information System (SIS) NLU Engine
+# 🎓 UChat — Intent Classification Engine (NLU Core MVP)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)]()
-[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=flat&logo=Streamlit&logoColor=white)](https://streamlit.io)
-[![HuggingFace](https://img.shields.io/badge/HF-Transformers-yellow.svg)](https://huggingface.co/rilliaa)
+[![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=flat&logo=Streamlit&logoColor=white)]()
+[![HuggingFace](https://img.shields.io/badge/HF-Transformers-yellow.svg)]()
 
-## 🇬🇧 English Version
+## 🇬🇧 EN
 
-### 🎯 Project Description
+## 🎯 Project Description
 
-**UChat** is a Natural Language Understanding (NLU) engine designed for School Information Systems. It serves as an intelligent middleware that translates user queries (from Students, Teachers, Parents, and Admins) into structured API calls and actionable visualizations.
+This project presents the **NLU Intent Classification Engine** that forms the core reasoning capability of UChat.  
+As an MVP, the scope is intentionally narrowed to a single essential objective:  
+**mapping user utterances into consistent, high-quality intent labels.**
 
-This project demonstrates a critical evolution in NLP product development, presented in two versions within the application:
+Two evolutionary tracks were developed:
 
-1.  **v1.0 Legacy Mode (Experimental):** A massive scope intent classifier covering **114 intents** across all school domains.
-2.  **v2.0 Focus Mode (Stable):** An optimized, production-ready version focusing on the **Top-16 High-Value Intents**, featuring robust entity extraction and data-centric improvements.
+1. **v1.0 Legacy Mode — Broad 114-Class Intent Space**  
+   Exploratory stage to understand domain coverage and data sparsity limitations.
 
----
-
-### 🚀 Key Features
-
-* **Role-Aware Context:** The NLU engine adjusts predictions based on the user's role (e.g., *Student* vs. *Admin*).
-* **Dual-Architecture Support:**
-    * **Lightweight:** TF-IDF + Logistic Regression (Low latency).
-    * **Transformer:** Fine-tuned `IndoBERTweet` (High contextual understanding).
-* **Logic-Gated Entity Extraction:** Uses a dynamic regex mapping system that only activates relevant entity patterns based on the predicted intent, reducing false positives.
-* **Interactive Analytics:** Capable of rendering charts (grades, attendance) directly within the chat interface.
+2. **v2.0 Focus Mode — Optimized 16-Class Intent Space**  
+   A refined, production-ready approach built on curated datasets and linguistic augmentation.
 
 ---
 
-### 📊 Model Evaluation & Benchmarks
+## 🚀 Key Features (NLU-Only Focus)
 
-This project compares two approaches: **Broad Scope (114 Classes)** vs. **Focused Scope (16 Classes)**.
+- **Intent Classification as the Core Logic**  
+  Every utterance is converted into a precise intent label, serving as the system’s decision layer.
 
-#### 1. Focus Mode (v2.0) — *Recommended*
-*Optimized dataset (100 utterances/intent) with heavy linguistic augmentation (slang, typo, formal).*
+- **Dual Model Architectures**  
+  - **TF-IDF + Logistic Regression** — lightweight and fast baseline.  
+  - **Fine-tuned IndoBERTweet** — deep contextual understanding and robust performance.
 
-| Model Architecture | Accuracy | Macro F1 | Status |
-| :--- | :--- | :--- | :--- |
-| **IndoBERTweet (Fine-tuned)** | **100%** | **1.00** | ✅ Production Ready |
-| **TF-IDF + LogReg** | **97%** | **0.97** | ⚡ Excellent Baseline |
+- **Data-Centric Improvements**  
+  100 utterances per intent, enhanced with slang, typos, formal variants, and paraphrase augmentation.
 
-**Insight:** By narrowing the scope to high-impact features and improving data quality, the model achieves near-perfect stability on the test set.
+- **Reduced Error Through Focused Intent Space**  
+  Consolidating the scope from 114 → 16 intents dramatically improves stability and accuracy.
 
-**Classification Report (IndoBERTweet - Focus Mode):**
-```text
-                               precision    recall  f1-score   support
+---
 
-    admin_student_chart_nilai       1.00      1.00      1.00        21
-    student_chart_kehadiran         1.00      0.95      0.97        20
-    ...
-    teacher_view_student_details    1.00      1.00      1.00        20
+## 📊 Model Evaluation
 
-                     accuracy                           1.00       321
-                    macro avg       1.00      1.00      1.00       321
-                 weighted avg       1.00      1.00      1.00       321
-````
+### **1. Focus Mode (v2.0) — Recommended for Production**
 
-#### 2\. Legacy Mode (v1.0) — *Experimental*
+| Model | Accuracy | Macro F1 | Status |
+|-------|----------|----------|---------|
+| **IndoBERTweet (Fine-tuned)** | **100%** | **1.00** | ✅ Stable |
+| **TF-IDF + LogReg** | **97%** | **0.97** | ⚡ Strong Baseline |
 
-*Initial attempt with 114 intents. Shows the "Curse of Dimensionality" and data sparsity issues.*
+**Insight:**  
+Refined intent scope and improved dataset quality produce near-perfect model performance.  
+This confirms that **data quality and class selection** are more impactful than expanding the number of classes.
 
-| Model Architecture | Accuracy | Macro F1 | Status |
-| :--- | :--- | :--- | :--- |
-| **IndoBERTweet** | **94%** | **0.94** | ⚠️ Good but Overfitted |
-| **TF-IDF + LogReg** | **65%** | **0.64** | ❌ Fails on nuances |
+---
 
-> **Observation:** While BERT handles 114 classes decently (94%), the traditional TF-IDF model collapses (65%) due to the high overlap between intents. This justifies the move to "Focus Mode" for the MVP.
+### **2. Legacy Mode (v1.0) — Experimental**
 
------
+| Model | Accuracy | Macro F1 | Status |
+|--------|----------|----------|---------|
+| **IndoBERTweet** | **94%** | **0.94** | ⚠️ Overfitted |
+| **TF-IDF + LogReg** | **65%** | **0.64** | ❌ Unstable |
 
-### 📂 Repository Structure
+**Observation:**  
+Intent overlap and sparse samples severely impact classical models.  
+Even BERT exhibits stress in the 114-class scenario, reinforcing the decision to move to **Focus Mode** for a reliable MVP.
 
-  * `app.py` — Main Streamlit application (lazy loading enabled).
-  * `notebooks/` — Training logs for both Focus Mode and Legacy Mode.
-  * `result/` — Pickle files for TF-IDF models.
-  * `src/` — Helper modules for entity extraction and preprocessing.
+---
 
------
+## 📂 Repository Structure
 
-### 🚀 Live Demo
+- `app.py` — Streamlit interface for model comparison.
+- `notebooks/` — Training logs and evaluation reports.
+- `result/` — Serialized TF-IDF model artifacts.
+- `src/` — Preprocessing utilities and intent classifier modules.
 
-Try the interactive comparison between **v1.0** and **v2.0** on Streamlit Cloud:
+---
 
-[](https://uchat-edu-mvp.streamlit.app/)
+## 🚀 Live Demo
 
------
+Try our interactive demo on **Streamlit Cloud**:  
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://uchat-edu-mvp.streamlit.app/)
 
-## 🇮🇩 Versi Bahasa Indonesia
 
-### 🎯 Deskripsi Proyek
+---
 
-**UChat** adalah mesin *Natural Language Understanding* (NLU) yang dirancang untuk Sistem Informasi Sekolah. Sistem ini bertindak sebagai perantara cerdas yang menerjemahkan pertanyaan pengguna (Murid, Guru, Wali Murid, Admin) menjadi panggilan API terstruktur dan visualisasi data.
+# 🇮🇩 ID
 
-Proyek ini mendemonstrasikan evolusi pengembangan produk NLP, yang disajikan dalam dua versi:
+## 🎯 Deskripsi Proyek
 
-1.  **v1.0 Legacy Mode (Eksperimental):** Klasifikasi intent dengan cakupan luas (**114 intent**) mencakup seluruh domain sekolah.
-2.  **v2.0 Focus Mode (Stabil):** Versi optimasi yang berfokus pada **16 Intent Utama (High-Value)**, dengan perbaikan kualitas data dan ekstraksi entitas yang lebih tangguh.
+Proyek ini menghadirkan **Mesin Klasifikasi Intent** sebagai inti dari sistem NLU UChat.  
+Pada tahap MVP, ruang lingkup difokuskan sepenuhnya pada kemampuan model dalam mengonversi kalimat pengguna menjadi **label intent** yang akurat dan stabil.
 
------
+Dikembangkan melalui dua pendekatan:
 
-### 🚀 Fitur Utama
+1. **v1.0 Legacy Mode — 114 Intent**  
+   Eksperimen awal untuk memahami cakupan domain dan tantangan kelangkaan data.
 
-  * **Role-Aware Context:** Prediksi intent menyesuaikan dengan peran pengguna yang sedang login (misal: *Murid* vs *Admin*).
-  * **Dukungan Arsitektur Ganda:**
-      * **Ringan:** TF-IDF + Logistic Regression (Latensi rendah).
-      * **Transformer:** Fine-tuned `IndoBERTweet` (Pemahaman konteks tinggi).
-  * **Logic-Gated Entity Extraction:** Menggunakan pemetaan regex dinamis yang hanya mengaktifkan pola entitas sesuai intent yang terprediksi, mengurangi *false positives*.
-  * **Interactive Analytics:** Mampu menampilkan grafik (nilai, kehadiran) langsung di antarmuka chat.
+2. **v2.0 Focus Mode — 16 Intent Utama**  
+   Versi yang teroptimasi, berbasis dataset terstruktur dengan kualitas yang ditingkatkan.
 
------
+---
 
-### 📊 Evaluasi & Benchmark Model
+## 🚀 Fitur Utama (Fokus Intent Classification)
 
-Proyek ini membandingkan pendekatan **Broad Scope (114 Kelas)** vs **Focused Scope (16 Kelas)**.
+- **Klasifikasi Intent sebagai Otak Sistem**  
+  Setiap kalimat pengguna dipetakan ke intent yang paling relevan.
 
-#### 1\. Focus Mode (v2.0) — *Direkomendasikan*
+- **Dua Arsitektur Model**  
+  - **TF-IDF + Logistic Regression** — cepat dan ringan.  
+  - **Fine-tuned IndoBERTweet** — kemampuan memahami konteks yang lebih mendalam.
 
-*Dataset teroptimasi (100 data/intent) dengan augmentasi linguistik berat (bahasa gaul, typo, formal).*
+- **Data-Centric Enhancements**  
+  Dataset 100 data per intent dengan augmentasi bahasa gaul, typo, formal, dan parafrase.
 
-| Arsitektur Model | Akurasi | Macro F1 | Status |
-| :--- | :--- | :--- | :--- |
-| **IndoBERTweet (Fine-tuned)** | **100%** | **1.00** | ✅ Siap Produksi |
-| **TF-IDF + LogReg** | **97%** | **0.97** | ⚡ Baseline Sangat Baik |
+- **Minimasi Error melalui Pengurangan Cakupan**  
+  Mengurangi kelas dari 114 → 16 terbukti meningkatkan performa secara signifikan.
 
-> **Insight:** Dengan membatasi ruang lingkup pada fitur berdampak tinggi dan meningkatkan kualitas data (Data-Centric AI), model mencapai stabilitas hampir sempurna pada data uji.
+---
 
-**Laporan Klasifikasi (IndoBERTweet - Focus Mode):**
+## 📊 Evaluasi Model
 
-```text
-                               precision    recall  f1-score   support
+### **1. Focus Mode (v2.0) — Direkomendasikan**
 
-    admin_student_chart_nilai       1.00      1.00      1.00        21
-    student_chart_kehadiran         1.00      0.95      0.97        20
-    ...
-    teacher_view_student_details    1.00      1.00      1.00        20
+| Model | Akurasi | Macro F1 | Status |
+|--------|----------|----------|---------|
+| **IndoBERTweet (Fine-tuned)** | **100%** | **1.00** | ✅ Stabil |
+| **TF-IDF + LogReg** | **97%** | **0.97** | ⚡ Baseline Kuat |
 
-                     accuracy                           1.00       321
-                    macro avg       1.00      1.00      1.00       321
-                 weighted avg       1.00      1.00      1.00       321
-```
+**Insight:**  
+Pembatasan ruang lingkup dan peningkatan kualitas data menghasilkan performa yang sangat konsisten.  
+Pendekatan ini menegaskan bahwa kualitas dataset lebih penting daripada sekadar memperbanyak jumlah intent.
 
-#### 2\. Legacy Mode (v1.0) — *Eksperimental*
+---
 
-*Percobaan awal dengan 114 intent. Menunjukkan tantangan "Curse of Dimensionality" dan kelangkaan data.*
+### **2. Legacy Mode (v1.0) — Eksperimental**
 
-| Arsitektur Model | Akurasi | Macro F1 | Status |
-| :--- | :--- | :--- | :--- |
-| **IndoBERTweet** | **94%** | **0.94** | ⚠️ Bagus tapi Overfit |
-| **TF-IDF + LogReg** | **65%** | **0.64** | ❌ Gagal menangkap nuansa |
+| Model | Akurasi | Macro F1 | Status |
+|--------|----------|----------|---------|
+| **IndoBERTweet** | **94%** | **0.94** | ⚠️ Cenderung Overfit |
+| **TF-IDF + LogReg** | **65%** | **0.64** | ❌ Tidak Stabil |
 
-> **Observasi:** Sementara BERT mampu menangani 114 kelas dengan cukup baik (94%), model tradisional TF-IDF jatuh performanya (65%) karena tingginya kemiripan antar-intent. Ini menjustifikasi keputusan strategis untuk beralih ke "Focus Mode" demi MVP yang reliabel.
+**Observasi:**  
+Tumpang tindih antar-intent dan distribusi data yang jarang menyebabkan degradasi performa, terutama pada model klasik.  
+Hal ini memperkuat keputusan strategis untuk beralih ke **Focus Mode** pada MVP.
 
------
+---
 
-### 📁 Struktur Repository
+## 📁 Struktur Repository
 
-  * `app.py` — Aplikasi utama Streamlit (*lazy loading enabled*).
-  * `notebooks/` — Log pelatihan untuk Focus Mode dan Legacy Mode.
-  * `result/` — File model `.pkl` untuk TF-IDF.
-  * `src/` — Modul pembantu untuk ekstraksi entitas dan preprocessing.
+- `app.py` — Antarmuka Streamlit.
+- `notebooks/` — Catatan pelatihan dan evaluasi.
+- `result/` — Artefak model TF-IDF.
+- `src/` — Modul preprocessing dan classifier.
 
------
+---
 
-### 🚀 Demo Langsung
+## 🚀 Demo Langung
 
-Coba perbandingan interaktif antara **v1.0** dan **v2.0** di Streamlit Cloud:
+Coba demo kami secara interaktif langsung di **Streamlit Cloud**:  
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://uchat-edu-mvp.streamlit.app/)
 
-[](https://uchat-edu-mvp.streamlit.app/)
 
-```
 
-***
-
-### Poin Strategis yang Saya Masukkan:
-
-1.  **Tabel Komparasi:** Saya menggunakan tabel untuk membandingkan akurasi v1.0 vs v2.0. Ini memberikan visualisasi cepat kepada pembaca tentang *kenapa* Sir melakukan *Focus Mode*.
-2.  **Snippet Classification Report:** Saya hanya mengambil potongan penting dari gambar yang Sir berikan (FM IndoBERTweet) sebagai bukti validitas.
-3.  **Link Streamlit:** Jangan lupa ganti URL `https://uchat-engine.streamlit.app/` dengan link aplikasi Sir yang sebenarnya nanti.
-4.  **Insight Blocks:** Saya menambahkan blok kutipan (`>`) yang berisi "Insight" atau "Observasi". Ini menunjukkan bahwa Sir berpikir kritis (*critical thinking*) tentang hasil model, bukan sekadar *coding*.
-```
