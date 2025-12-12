@@ -93,8 +93,8 @@ Karena ukuran file yang besar, model Transformer disimpan di **Hugging Face Hub*
 
 | Versi | Nama Model | Repositori Hugging Face | Status |
 | :--- | :--- | :--- | :--- |
-| **v2.0 (Focus Mode)** | `FM_IndoBERTweet` | [](https://huggingface.co/rilliaa/FM_IndoBERTweet_Intent_Classifier) | ✅ Lebih Fokus ke Intent Utama |
-| **v1.0 (Legacy)** | `UChat-IndoBERTweet` | [](https://huggingface.co/rilliaa/UChat-IndoBERTweet) | ⚠️ Cakupan Intent lebih luas |
+| **v2.0 (Focus Mode)** | `FM_IndoBERTweet` | [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Open-yellow)](https://huggingface.co/rilliaa/FM_IndoBERTweet_Intent_Classifier) | ✅ Lebih Fokus ke Intent Utama |
+| **v1.0 (Legacy)** | `UChat-IndoBERTweet` | [![Hugging Face](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Open-yellow)](https://huggingface.co/rilliaa/UChat-IndoBERTweet)  | ⚠️ Cakupan Intent lebih luas |
 
 ### 2\. Lightweight Models (TF-IDF + Logistic Regression)
 
