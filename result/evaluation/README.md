@@ -18,7 +18,7 @@ The visual reports below confirm the hypothesis: **Reducing intent scope signifi
 
 | Metric Image | Model | Performance Highlights |
 | :--- | :--- | :--- |
-| [ClassificationReportsFMIndoBERTweet](classification-report-fm-indobertweet.png) | **IndoBERTweet** | **Perfect Score (1.00)**. Precision and Recall are balanced across all classes. |
+| [`classification-report-fm-indobertweet.png`](classification-report-fm-indobertweet.png) | **IndoBERTweet** | **Perfect Score (1.00)**. Precision and Recall are balanced across all classes. |
 | [`classification-report-fm-tf-idf.png`](classification-report-fm-tf-idf.png) | **TF-IDF + LR** | **Excellent (0.97)**. Even the lightweight model performs near-perfectly with cleaner data. |
 
 > **Key Takeaway:** In Focus Mode, the gap between the complex model (BERT) and the simple model (TF-IDF) is very small (3%), proving that the dataset is high quality and distinct.
