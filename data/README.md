@@ -12,7 +12,7 @@ The data strategy is the core differentiator between the two model versions.
 
 | Filename | Version | Description |
 | :--- | :--- | :--- |
-| **`fm_dataset.csv`** | **v2.0 Focus Mode** | The curated MVP dataset. Contains **1,600+ utterances** covering 16 specific intents (approx. 100 samples/class). Heavily augmented with slang, typos, and formal variations. |
+| **`fm_dataset.csv`** | **v2.0 Focus Mode** | The curated MVP dataset. Contains **1,600+ utterances** covering 16 specific intents (approx. 100 samples/class). |
 | **`dataset.csv`** | **v1.0 Legacy Mode** | The initial experimental dataset. Contains diverse utterances covering **114 intents**. Prone to class imbalance and noise. |
 
 ---
