@@ -54,7 +54,7 @@ As seen in [`classification-report-fm-tf-idf.png`](classification-report-fm-tf-i
 ---
 ---
 
-# 🇮🇩 ID (Versi Bahasa Indonesia)
+# ID 
 
 Direktori ini berisi **bukti forensik** dari performa model. Folder ini memvisualisasikan transisi dari cakupan intent yang luas dan *noisy* (v1.0) ke cakupan MVP yang fokus dan presisi tinggi (v2.0).
 
