@@ -98,7 +98,7 @@ Gambar di bawah mengilustrasikan kondisi distribusi dataset selama proses rekaya
 | Sebelum Preprocessing | Sesudah Preprocessing |
 | :---: | :---: |
 | ![Before](before_preprocessing.png) | ![After](after_preprocessing.png) |
-| *Distribusi awal (Potensi Imbalance/Noise)* | *Distribusi akhir siap latih* |
+| *Teks awal ucapan* | *Teks ucapan untuk pelatihan* |
 
 ---
 
