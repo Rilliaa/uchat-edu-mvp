@@ -21,7 +21,6 @@ The visual reports below confirm the hypothesis: **Reducing intent scope signifi
 | ![`classification-report-fm-indobertweet.png`](classification-report-fm-indobertweet.png) | **IndoBERTweet** | **Perfect Score (1.00)**. Precision and Recall are balanced across all classes. |
 | ![`classification-report-fm-tf-idf.png`](classification-report-fm-tf-idf.png) | **TF-IDF + LR** | **Excellent (0.97)**. Even the lightweight model performs near-perfectly with cleaner data. |
 
-> **Key Takeaway:** In Focus Mode, the gap between the complex model (BERT) and the simple model (TF-IDF) is very small (3%), proving that the dataset is high quality and distinct.
 
 ### 2. v1.0 Legacy Mode (The Baseline)
 *Broad 114-Intent Scope (Experimental).*
@@ -75,7 +74,6 @@ Laporan visual di bawah ini mengonfirmasi hipotesis: **Mengurangi cakupan intent
 | ![`classification-report-fm-indobertweet.png`](classification-report-fm-indobertweet.png) | **IndoBERTweet** | **Skor Sempurna (1.00)**. Precision dan Recall seimbang di seluruh kelas. |
 | ![`classification-report-fm-tf-idf.png`](classification-report-fm-tf-idf.png) | **TF-IDF + LR** | **Sangat Baik (0.97)**. Bahkan model ringan pun berkinerja hampir sempurna dengan data yang lebih bersih. |
 
-> **Poin Penting:** Dalam Focus Mode, celah antara model kompleks (BERT) dan model sederhana (TF-IDF) sangat kecil (3%), membuktikan bahwa dataset memiliki kualitas tinggi dan *distinct*.
 
 ### 2. v1.0 Legacy Mode (Baseline)
 *Cakupan Luas 114-Intent (Eksperimental).*
