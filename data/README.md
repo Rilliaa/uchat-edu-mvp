@@ -1,4 +1,6 @@
-# 💾 Datasets & Preprocessing
+## EN
+---
+## 💾 Datasets & Preprocessing
 
 This directory contains the raw and processed datasets used to train the UChat NLU Engine, along with the scripts used for data cleaning and augmentation.
 
@@ -64,9 +66,8 @@ The v2.0 dataset is strictly scoped to these high-value interactions, categorize
 > **Note for Legacy Mode:** The v1.0 dataset covers 114 intents including CRUD operations (`_add`, `_update`, `_delete`) for all entities. Please refer to `dataset.csv` for the full schema.
 
 ---
+## ID
 ---
-
-# 🇮🇩 ID (Versi Bahasa Indonesia)
 
 Direktori ini berisi dataset mentah dan yang telah diproses untuk melatih UChat NLU Engine, beserta skrip yang digunakan untuk pembersihan dan augmentasi data.
 
