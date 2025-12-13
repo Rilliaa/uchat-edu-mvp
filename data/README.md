@@ -31,7 +31,7 @@ The images below illustrate the dataset distribution state during the engineerin
 | Before Preprocessing | After Preprocessing |
 | :---: | :---: |
 | ![Before](before_preprocessing.png) | ![After](after_preprocessing.png) |
-| *Initial distribution (Potential Imbalance/Noise)* | *Final distribution ready for training* |
+| *Initial text utterences* | *Final utterences for training* |
 
 ---
 
