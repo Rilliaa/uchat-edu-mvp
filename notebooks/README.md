@@ -31,7 +31,7 @@ The notebooks are organized into two distinct development tracks, reflecting the
 
 All notebooks generally follow this standardized workflow:
 
-1.  **Data Ingestion**: Loading the intent dataset (CSV/JSON).
+1.  **Data Ingestion**: Loading the intent dataset (CSV).
 2.  **Preprocessing**:
     * Text cleaning (lowercase, regex removal).
     * Label encoding.
